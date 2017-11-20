@@ -1,0 +1,3 @@
+name = "delete form module"
+description = "A module to delete unwanted contents from content types."
+core = "7.x"

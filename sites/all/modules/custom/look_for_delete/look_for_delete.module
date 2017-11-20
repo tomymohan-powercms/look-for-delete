@@ -1,0 +1,186 @@
+<?php
+
+error_reporting(E_ALL);
+ini_set('display_errors', TRUE);
+ini_set('display_startup_errors', TRUE);
+
+/**
+ * hook_menu
+ */
+
+function look_for_delete_menu() {
+  $items = array();
+  $item['delete-contents'] = array (
+    'title' => 'CONTENT DELETE',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('look_for_delete_form'),
+    'access arguments' => array('access content'),
+    'description' => 'to delete the contents',
+    'type' => MENU_CALLBACK,
+  );
+  return $item;
+}
+
+/**
+ * hook_form
+ */
+
+function look_for_delete_form($form, &$form_state) {
+  form_load_include($form_state, 'inc', 'node', 'node.admin');
+  $content_types = node_type_get_names();
+  $nodes = node_load_multiple(array(), array('type' => 'sample'));
+  $form['select_content_type'] = array(
+    '#type' => 'select',
+    '#title' => t('Content Type Selection'),
+    '#required' => TRUE,
+    '#options' => $content_types,
+    '#ajax' => array (
+      'callback' => 'look_for_delete_field_table',
+      'wrapper' => 'delete-form-wrapper',
+      'method' => 'replace',
+      'effect' => 'fade',
+    ),
+  );
+  $form['nodes'] = array(
+    '#tree' => TRUE,
+    '#theme' => 'look_for_delete_theme_field_table',
+    '#prefix' => '<div id ="delete-form-wrapper">', 
+    '#suffix' => '</div>',
+  );
+  $form['range'] = array(
+      '#type' => 'textfield',
+      '#title' =>t('Range'),
+      '#size' => '15'
+  );
+  $answer = array(
+      'yes' => t('Delete user added to the content'),
+    );
+  $form['userdelete'] = array(
+        '#type' => 'checkboxes',
+        '#options' => $answer,
+  );  
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Update'),
+    '#submit' => array('look_for_delete_submit'),
+  );
+  $default_content = isset($form_state['input']['select_content_type']) ? 
+      $form_state['input']['select_content_type'] : '';
+  $machine_name = field_info_instances('node', $default_content);
+  $options = array(
+        'delete' => t('Delete'),
+        'publish' => t('Publish'), 
+        'unpublish' => t('Unpublish'),
+  );
+  if (!empty($default_content)) {
+    $field_operators = array(
+      '=' => 'Equal to', 
+      '!=' => 'Not Equal to', 
+      '!*' => 'Doesnot contain', 
+      '*' => 'Contains', 
+    );
+    foreach ($machine_name as $key => $value) {
+      $form['nodes'][$key]['fieldname'] = array(
+        '#type' => 'markup',
+        '#markup' => $value['field_name'],
+      );
+      $form['nodes'][$key]['operator'] = array(
+        '#type' => 'select',
+        '#options' => $field_operators,
+      );
+      $form['nodes'][$key]['search_name'] = array(
+        '#type' => 'textfield',
+        '#size' => '20',
+      ); 
+    }
+    $form['nodes']['update'] = array(
+        '#type' => 'checkboxes',
+        '#options' => $options,
+    );  
+  }
+
+  return $form;
+}
+function look_for_delete_field_table($form, &$form_state) {
+  return $form['nodes'] ;
+}
+
+//$form['nodes'];
+/**
+ * Implements hook_theme().
+ */
+function look_for_delete_theme() {
+  $theme['look_for_delete_theme_field_table'] = array(
+    'render element' => 'element',
+  );
+  return $theme;
+}
+
+function theme_look_for_delete_theme_field_table($variables) {
+  $element = $variables['element'];
+  $rows = array();
+
+  foreach (element_children($element) as $id) {
+    // Mark the table row as draggable for TableDrag.
+    $row = array(
+      'data' => array(),
+      'class' => array('draggable'),
+    );
+    // Render the table columns.
+    $row['data'][] = drupal_render($element[$id]['fieldname']);
+    $row['data'][] = drupal_render($element[$id]['operator']);
+    $row['data'][] = drupal_render($element[$id]['search_name']);
+    $rows[] = $row;
+  }
+  // Build the table header.
+  $header = array(
+    t('Field Name'),
+    t('Operator'),
+    t('Desired File Name'),
+  );
+  // Render the table.
+  // Note: For TableSelect instead of TableDrag, you would have specified
+  //   'tableselect' as render element #type and passed the $rows as 'options'
+  //   instead of 'rows'.
+  $output = theme('table', array(
+    'header' => $header,
+    'rows' => $rows,
+    'empty' => t('No content available.'),
+    'attributes' => array('id' => 'look-for-delete-order'),
+  ));
+  $output .= drupal_render_children($element);
+  return $output;
+}
+
+function look_for_delete_submit($form, &$form_state) {
+  $currentfields = $form_state['input']['nodes'];
+  dpm($currentfields);
+  $query = db_select('node','n' );
+  foreach ($currentfields as $field_name => $field_data) {
+
+    dpm($field_data);
+   
+      /*$nids = $query->Condition('nid')
+      //->fields('n', array('nid'))
+      //->fields('n', array('type')     ->condition( $field_data . $field_data['operator'] . $field_data['search_name'])
+      ->execute()
+      ->fetchCol();
+*/
+    /*$nids = $query->fields('nid',array('node'))
+      ->condition( $field_name . $field_data['operator'] . $field_data['search_name'])
+      ->execute()
+      ->fetchCol();*/
+    
+  }
+// Now return the node objects.
+//$nodes = node_load_multiple($nids);
+    /*$query = new EntityFieldQuery();
+    $query->entityCondition('entity_type', 'nid')
+      ->entityCondition('bundle', $default_content)
+      ->propertyCondition(. $field_data['operator'] . $field_data['operator'])
+      //->fieldCondition('body', 'value', $current_search_name, $current_operator);
+    $result = $query->execute();
+    dpm($result);
+    $nids = $result['node'];
+    dpm($nids);*/
+}
