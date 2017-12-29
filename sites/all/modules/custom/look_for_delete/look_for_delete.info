@@ -1,3 +1,4 @@
 name = "Look for Delete"
 description = "A module to delete unwanted contents from content types."
 core = "7.x"
+files[] = look_for_delete.inc

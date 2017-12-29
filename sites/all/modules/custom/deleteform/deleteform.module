@@ -78,7 +78,7 @@ function deleteform_form($form, &$form_state) {
     $query->addTag('node_admin_filter');
     node_build_filter_query($query);
     $nids = $query->fields('n', array('nid'))
-      ->condition('n.type', $default_content)
+      ->condition('n.type', $default_content, '=')
       ->execute()
       ->fetchCol();
     $nodes = node_load_multiple($nids);

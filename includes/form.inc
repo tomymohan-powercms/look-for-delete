@@ -3462,7 +3462,7 @@ function theme_container($variables) {
  */
 function theme_tableselect($variables) {
   $element = $variables['element'];
-  ddl($element);
+  //ddl($element);
   $rows = array();
   $header = $element['#header'];
   if (!empty($element['#options'])) {
@@ -3497,7 +3497,7 @@ function theme_tableselect($variables) {
       array_unshift($header, '');
     }
   }
-  ddl($rows);
+  //ddl($rows);
   return theme('table', array('header' => $header, 'rows' => $rows, 'empty' => $element['#empty'], 'attributes' => $element['#attributes']));
 }
 
